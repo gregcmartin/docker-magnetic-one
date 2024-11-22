@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  magnetic-one:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - autogen_repo:/autogen
+    ports:
+      - "8000:8000"
+    environment:
+      - CHAT_COMPLETION_PROVIDER=${CHAT_COMPLETION_PROVIDER}
+      - CHAT_COMPLETION_KWARGS_JSON=${CHAT_COMPLETION_KWARGS_JSON}
+      - BING_API_KEY=${BING_API_KEY}
+    entrypoint: >
+      /bin/sh -c "
+      if [ ! -d /autogen/python/packages/autogen-magentic-one ]; then
+        echo 'Cloning AutoGen repository...' &&
+        git clone https://github.com/microsoft/autogen.git /autogen &&
+        cd /autogen/python/packages/autogen-magentic-one &&
+        pip install -e .;
+      fi &&
+      cd /app &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+volumes:
+  autogen_repo:
