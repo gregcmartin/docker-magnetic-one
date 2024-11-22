@@ -7,19 +7,48 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js (required for Playwright)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
+# Install uv package installer globally
+RUN pip install --no-cache-dir uv
 
+# Create non-root user
+RUN useradd -u 1000 -m -s /bin/bash appuser
+
+# Set working directory
 WORKDIR /app
+RUN chown -R appuser:appuser /app
 
-# Copy application code
-COPY . .
+# Make entrypoint script executable
+COPY --chown=appuser:appuser entrypoint.sh .
+RUN chmod +x /app/entrypoint.sh
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Clone autogen repository with retry logic
+RUN mkdir -p /autogen && \
+    for i in 1 2 3; do \
+        echo "Attempt $i: Cloning AutoGen repository..." && \
+        rm -rf /autogen/* && \
+        if git clone https://github.com/microsoft/autogen.git /autogen; then \
+            echo "Successfully cloned AutoGen repository" && \
+            if [ -d "/autogen/.git" ]; then \
+                echo "Verified clone was successful" && \
+                chown -R appuser:appuser /autogen && \
+                break; \
+            else \
+                echo "Clone verification failed, retrying..." && \
+                if [ $i -eq 3 ]; then exit 1; fi; \
+            fi; \
+        else \
+            echo "Clone failed, retrying..." && \
+            if [ $i -eq 3 ]; then exit 1; fi; \
+        fi; \
+        sleep 5; \
+    done
 
-# Install Playwright
-RUN pip install playwright && playwright install --with-deps chromium
+# Switch to non-root user
+USER appuser
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Create virtual environment
+RUN python -m venv /app/venv
+ENV PATH="/app/venv/bin:$PATH"
+
+# Set the entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]

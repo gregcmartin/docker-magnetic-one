@@ -1,9 +1,14 @@
 #!/bin/bash
+set -e
 
-# Clone AutoGen repository if it doesn't exist
-if [ ! -d "/autogen" ]; then
-    git clone https://github.com/microsoft/autogen.git /autogen
+# Activate virtual environment
+source /app/venv/bin/activate
+
+# Install AutoGen only if not already installed
+if ! pip list | grep -q "pyautogen"; then
+    cd /autogen/python
+    uv sync --all-extras
 fi
 
-# Execute the command passed to docker-compose
-exec "$@"
+# Keep container running
+exec tail -f /dev/null
