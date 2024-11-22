@@ -1,6 +1,6 @@
-# Docker AutoGen Environment
+# Docker AutoGen
 
-A Docker-based environment for Microsoft's AutoGen framework. This project provides a containerized setup for running AutoGen with persistent storage.
+A Docker environment for Microsoft's AutoGen framework.
 
 ## Prerequisites
 
@@ -9,77 +9,47 @@ A Docker-based environment for Microsoft's AutoGen framework. This project provi
 
 ## Setup
 
-1. Clone this repository:
+1. Clone and enter the repository:
 ```bash
 git clone git@github.com:gregcmartin/docker-magnetic-one.git
 cd docker-magnetic-one
 ```
 
-2. Create your environment file:
+2. Set up environment:
 ```bash
 cp .env.example .env
 ```
 
-3. Edit the `.env` file with your configuration:
-   - Set `CHAT_COMPLETION_PROVIDER` to either 'azure' or 'openai'
-   - Configure `CHAT_COMPLETION_KWARGS_JSON` with your API credentials
-   - Optionally set `BING_API_KEY` if you want to use web search functionality
+3. Configure `.env`:
+   - Set `CHAT_COMPLETION_PROVIDER` ('azure' or 'openai')
+   - Add your API credentials in `CHAT_COMPLETION_KWARGS_JSON`
+   - Optional: Add `BING_API_KEY` for web search
 
-## Running the Container
+## Usage
 
-Build and start the container:
+Start the container:
 ```bash
 docker-compose up --build
 ```
 
 This will:
-- Build the container with necessary system dependencies
-- Clone the Microsoft AutoGen repository
-- Install AutoGen with all extras (only if not already installed)
-- Maintain a persistent volume for AutoGen data
-
-## Project Structure
-
-```
-.
-├── docker-compose.yml       # Docker Compose configuration
-├── Dockerfile              # Container definition
-├── entrypoint.sh          # Container entrypoint script
-└── .env.example           # Environment template
-```
-
-## How it Works
-
-The container uses a streamlined approach:
-
-1. During build:
-   - Sets up system dependencies
-   - Clones the Microsoft AutoGen repository
-   - Creates Python virtual environment
-
-2. At runtime:
-   - Checks if AutoGen is already installed
-   - Installs AutoGen with all extras if needed
-   - Maintains persistent data through Docker volume
+- Set up Docker environment
+- Install AutoGen with all extras
+- Maintain data in a persistent volume
 
 ## Troubleshooting
 
-If you encounter issues:
-
-1. Check the Docker logs:
+Check logs:
 ```bash
-docker-compose logs magnetic-one
+docker-compose logs
 ```
 
-2. Verify your environment variables are correctly set in `.env`
-
-3. If the AutoGen repository fails to clone:
+Reset installation:
 ```bash
-# Remove the volume and try again
 docker-compose down -v
 docker-compose up --build
 ```
 
 ## License
 
-This project is licensed under the terms of the Microsoft AutoGen repository license.
+Licensed under the terms of the Microsoft AutoGen repository license.
